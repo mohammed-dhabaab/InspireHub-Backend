@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import Users from '../models/usersSchema.js';
 
 export const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -7,11 +8,11 @@ export const authenticateToken = (req, res, next) => {
         return res.sendStatus(401);
     }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
         if (err) {
             return res.status(403).json({ message: 'Access forbidden: token is invalid or expired' });
         }
-        req.user = user;
+        req.user = await Users.findById(user.id);
         next();
     });
 };

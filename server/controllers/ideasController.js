@@ -1,4 +1,5 @@
 import Ideas from '../models/ideasSchema.js';
+import Users from '../models/usersSchema.js'
 import { validationResult } from 'express-validator';
 
 // Get all ideas  
@@ -28,7 +29,6 @@ export const getIdeaById = async (req, res) => {
     }
 };
 
-// Create a new idea  
 export const createIdea = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -38,9 +38,19 @@ export const createIdea = async (req, res) => {
     const { name, description, studentId, status, reason } = req.body;
 
     try {
+
         const newIdea = new Ideas({ name, description, studentId, status, reason });
         await newIdea.save();
-        res.status(201).send(newIdea);
+
+
+        await Users.findByIdAndUpdate(
+            studentId,
+            { $push: { ideas: newIdea._id } },
+            { new: true }
+        );
+
+
+        res.status(201).json(newIdea);
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
